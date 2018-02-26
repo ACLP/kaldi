@@ -22,6 +22,7 @@ extra_right_context=0
 extra_left_context_initial=-1
 extra_right_context_final=-1
 online_ivector_dir=
+write_per_frame_acoustic_loglikes=""
 # End configuration options.
 
 echo "$0 $@"  # Print the command line for logging
@@ -36,6 +37,7 @@ if [ $# != 4 ]; then
    echo "  --config <config-file>                           # config containing options"
    echo "  --nj <nj>                                        # number of parallel jobs"
    echo "  --cmd (utils/run.pl|utils/queue.pl <queue opts>) # how to run jobs."
+   echo "  --write-per-frame-acoustic-loglikes : Wspecifier for table of vectors containing the acoustic log-likelihoods per frame for each utterance. E.g. ark:foo/per_frame_logprobs.1.ark (string, default = "")"
    exit 1;
 fi
 
@@ -119,6 +121,7 @@ $cmd $queue_opt JOB=1:$nj $dir/log/align.JOB.log \
   --extra-left-context-initial=$extra_left_context_initial \
   --extra-right-context-final=$extra_right_context_final \
   $gpu_opt --beam=$beam --retry-beam=$retry_beam \
+  --write-per-frame-acoustic-loglikes=$write_per_frame_acoustic_loglikes \
   $srcdir/${iter}.mdl ark:- "$feats" "ark:|gzip -c >$dir/ali.JOB.gz" || exit 1;
 
 steps/diagnostic/analyze_alignments.sh --cmd "$cmd" $lang $dir
