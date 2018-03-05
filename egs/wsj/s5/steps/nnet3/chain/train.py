@@ -221,7 +221,8 @@ def process_args(args):
     if (not os.path.exists(args.dir+"/configs") and
         (args.input_model is None or not os.path.exists(args.input_model))):
         raise Exception("Either --trainer.input-model option should be supplied, "
-                        "and exist; or the {0}/configs directory should exist.")
+                        "and exist; or the {0}/configs directory should exist."
+                        "".format(args.dir))
 
     if args.transform_dir is None:
         args.transform_dir = args.lat_dir
@@ -340,16 +341,16 @@ def train(args, run_opts):
             {dir}/init.raw""".format(command=run_opts.command,
                                      dir=args.dir))
 
-    egs_left_context = left_context + args.frame_subsampling_factor / 2
-    egs_right_context = right_context + args.frame_subsampling_factor / 2
+    egs_left_context = left_context + args.frame_subsampling_factor // 2
+    egs_right_context = right_context + args.frame_subsampling_factor // 2
     # note: the '+ args.frame_subsampling_factor / 2' is to allow for the
     # fact that we'll be shifting the data slightly during training to give
     # variety to the training data.
     egs_left_context_initial = (left_context_initial +
-                                args.frame_subsampling_factor / 2 if
+                                args.frame_subsampling_factor // 2 if
                                 left_context_initial >= 0 else -1)
     egs_right_context_final = (right_context_final +
-                               args.frame_subsampling_factor / 2 if
+                               args.frame_subsampling_factor // 2 if
                                right_context_final >= 0 else -1)
 
     default_egs_dir = '{0}/egs'.format(args.dir)
@@ -431,7 +432,7 @@ def train(args, run_opts):
     num_archives_to_process = int(args.num_epochs * num_archives_expanded)
     num_archives_processed = 0
     num_iters = ((num_archives_to_process * 2)
-                 / (args.num_jobs_initial + args.num_jobs_final))
+                 // (args.num_jobs_initial + args.num_jobs_final))
 
     # If do_final_combination is True, compute the set of models_to_combine.
     # Otherwise, models_to_combine will be none.
