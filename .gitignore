@@ -22,6 +22,7 @@ core
 *.so
 *.dylib
 *.dll
+!/egs/wsj/s5/utils/phonetic_search/*
 
 # Compiled Static libraries
 *.lai
@@ -56,6 +57,7 @@ GSYMS
 
 # Windows executable, symbol and some weird files.
 *.exe
+!/egs/wsj/s5/utils/phonetic_search/*
 *.pdb
 *.exp
 *.manifest
@@ -96,8 +98,8 @@ RemoteSystemsTempFiles
 /egs/*/[sv][^0-9]*
 /egs/*/[sv][0-9]_*
 
-/egs/wsj/s5/utils/afeka/
-/egs/wsj/s5/utils/phonetic_search/
+#/egs/wsj/s5/utils/afeka/
+#/egs/wsj/s5/utils/phonetic_search/
 
 # new egs folders
 /egs/ACLP_Decoder/
@@ -183,6 +185,9 @@ RemoteSystemsTempFiles
 /tools/kenlm/
 /tools/rnnlm-0.3e.tgz
 /tools/rnnlm-0.3e
+/tools/pocolm
+/tools/cuda-7.5
+/tools/sama_3_1
 
 /kaldiwin_vs*
 
