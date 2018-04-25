@@ -17,7 +17,9 @@ BINFILES = add-deltas add-deltas-sdc append-post-to-feats \
            process-kaldi-pitch-feats process-pitch-feats \
            select-feats shift-feats splice-feats subsample-feats \
            subset-feats transform-feats wav-copy wav-reverberate \
-           wav-to-duration
+           wav-to-duration \
+           apply-arma apply-ltsv apply-nccf-to-pov apply-vad apply-vad-merged \
+           compute-dctf-feats compute-gabor-feats compute-gtf-feats extract-dims
 
 OBJFILES =
 
