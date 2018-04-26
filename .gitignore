@@ -114,6 +114,7 @@ RemoteSystemsTempFiles
 /egs/aurora4/s5z/
 /egs/gale_arabic/s5bZ*/
 /egs/gale_arabic/s5z*/
+/egs/gale_arabic/s5b_ella/
 /egs/sre10/v2ruthi*/
 
 # /tools/
@@ -188,6 +189,7 @@ RemoteSystemsTempFiles
 /tools/pocolm
 /tools/cuda-7.5
 /tools/sama_3_1
+/tools/intel_mkl
 
 /kaldiwin_vs*
 
