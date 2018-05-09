@@ -190,6 +190,8 @@ RemoteSystemsTempFiles
 /tools/cuda-7.5
 /tools/sama_3_1
 /tools/intel_mkl
+/tools/thrax-1.2.6.tar.gz
+/tools/thrax-1.2.6
 
 /kaldiwin_vs*
 
