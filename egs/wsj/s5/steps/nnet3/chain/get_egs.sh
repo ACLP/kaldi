@@ -54,7 +54,7 @@ right_tolerance=  # chain right tolerance == max label delay.
 left_tolerance=
 
 stage=0
-max_jobs_run=15         # This should be set to the maximum number of nnet3-chain-get-egs jobs you are
+max_jobs_run=5         # This should be set to the maximum number of nnet3-chain-get-egs jobs you are
                         # comfortable to run in parallel; you can increase it if your disk
                         # speed is greater and you have more machines.
 max_shuffle_jobs_run=50  # the shuffle jobs now include the nnet3-chain-normalize-egs command,
