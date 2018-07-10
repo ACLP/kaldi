@@ -188,6 +188,7 @@ RemoteSystemsTempFiles
 /tools/rnnlm-0.3e
 /tools/pocolm
 /tools/cuda-7.5
+/tools/cuda-9.1
 /tools/sama_3_1
 /tools/intel_mkl
 
