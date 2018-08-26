@@ -100,8 +100,6 @@ fi
 
 echo "$0: aligning data in $data using model from $srcdir, putting alignments in $dir"
 
-tra="ark:utils/sym2int.pl --map-oov $oov -f 2- $lang/words.txt $sdata/JOB/text|";
-
 frame_subsampling_opt=
 if [ -f $srcdir/frame_subsampling_factor ]; then
   # e.g. for 'chain' systems
