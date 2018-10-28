@@ -147,18 +147,21 @@ void Gtf::ComputeGammatoneMatrix(Matrix<BaseFloat> *gammatone_matrix_) {
   }
 }
 
-void Gtf::Compute(const VectorBase<BaseFloat> &wave,
+// void Gtf::Compute(const VectorBase<BaseFloat> &wave,
+//                    BaseFloat vtln_warp,
+//                    Matrix<BaseFloat> *output,
+//                    Vector<BaseFloat> *wave_remainder) {
+void Gtf::ComputeFeatures(const VectorBase<BaseFloat> &wave,
                    BaseFloat vtln_warp,
-                   Matrix<BaseFloat> *output,
-                   Vector<BaseFloat> *wave_remainder) {
+                   Matrix<BaseFloat> *output) {
   assert(output != NULL);
   int32 rows_out = NumFrames(wave.Dim(), opts_.frame_opts);
   int32 cols_out = (opts_.apply_dct)? (opts_.use_c0)? opts_.num_ceps : opts_.num_ceps-1 : opts_.num_bins;
   if (rows_out == 0)
     KALDI_ERR << "Gtf::Compute, no frames fit in file (#samples is " << wave.Dim() << ")";
   output->Resize(rows_out, cols_out);
-  if (wave_remainder != NULL)
-    ExtractWaveformRemainder(wave, opts_.frame_opts, wave_remainder);
+  // if (wave_remainder != NULL)
+  //   ExtractWaveformRemainder(wave, opts_.frame_opts, wave_remainder);
   Vector<BaseFloat> window;  // windowed waveform.
   Vector<BaseFloat> mel_energies;
   for (int32 r = 0; r < rows_out; r++) {  // r is frame index..

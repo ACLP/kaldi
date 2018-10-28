@@ -83,10 +83,13 @@ namespace kaldi {
 		//int32 Dim() { return opts_.mel_opts; }
  
  
-		void Compute(const VectorBase<BaseFloat> &wave,
+		// void Compute(const VectorBase<BaseFloat> &wave,
+		// BaseFloat vtln_warp,
+		// Matrix<BaseFloat> *output,
+		// Vector<BaseFloat> *wave_remainder = NULL);
+		void ComputeFeatures(const VectorBase<BaseFloat> &wave,
 		BaseFloat vtln_warp,
-		Matrix<BaseFloat> *output,
-		Vector<BaseFloat> *wave_remainder = NULL);
+		Matrix<BaseFloat> *output);
 		
 		void ApplyPadding(Matrix<BaseFloat> *spectrogram,
 		int32 ro,

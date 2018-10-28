@@ -82,7 +82,8 @@ int main(int argc, char *argv[]) {
           featvec.CopyColFromMat(feats, i);
           Matrix<BaseFloat> features;
           try {
-          dctf.Compute(featvec, &features, NULL);
+//          dctf.Compute(featvec, &features, NULL);
+            dctf.ComputeFeatures(featvec, &features);
           } catch (...) {
             KALDI_WARN << "Failed to compute features for utterance "
                        << utt;

@@ -55,9 +55,11 @@ class Dctf {
   /// have been partly processed), it's the start of the next window that we
   /// have not already processed.  Will throw exception on failure (e.g. if file
   /// too short for even one frame).
-  void Compute(const VectorBase<BaseFloat> &wave,
-               Matrix<BaseFloat> *output,
-               Vector<BaseFloat> *wave_remainder = NULL);
+//  void Compute(const VectorBase<BaseFloat> &wave,
+//               Matrix<BaseFloat> *output,
+//               Vector<BaseFloat> *wave_remainder = NULL);
+  void ComputeFeatures(const VectorBase<BaseFloat> &wave,
+               Matrix<BaseFloat> *output);
 
  private:
   DctfOptions opts_;

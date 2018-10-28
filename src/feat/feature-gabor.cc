@@ -542,10 +542,13 @@ Matrix<BaseFloat> *gfiltered_spec_imag) {
 
 
 
-void Gabor::Compute(const VectorBase<BaseFloat> &wave,
+// void Gabor::Compute(const VectorBase<BaseFloat> &wave,
+// BaseFloat vtln_warp,
+// Matrix<BaseFloat> *output,
+// Vector<BaseFloat> *wave_remainder) {
+void Gabor::ComputeFeatures(const VectorBase<BaseFloat> &wave,
 BaseFloat vtln_warp,
-Matrix<BaseFloat> *output,
-Vector<BaseFloat> *wave_remainder) {
+Matrix<BaseFloat> *output) {
            
   assert(output != NULL);
   int32 rows_out = NumFrames(wave.Dim(), opts_.frame_opts);
@@ -557,8 +560,8 @@ Vector<BaseFloat> *wave_remainder) {
   if (rows_out == 0)
     KALDI_ERR << "Gabor::Compute, no frames fit in file (#samples is " << wave.Dim() << ")";
   spectrogram.Resize(rows_out, cols_out);
-  if (wave_remainder != NULL)
-    ExtractWaveformRemainder(wave, opts_.frame_opts, wave_remainder);
+  // if (wave_remainder != NULL)
+  //   ExtractWaveformRemainder(wave, opts_.frame_opts, wave_remainder);
   
   Vector<BaseFloat> window;  // windowed waveform
   Vector<BaseFloat> mel_energies;

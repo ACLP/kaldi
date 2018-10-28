@@ -89,10 +89,13 @@ class Gtf {
   /// have been partly processed), it's the start of the next window that we
   /// have not already processed.  Will throw exception on failure (e.g. if file
   /// too short for even one frame).
-  void Compute(const VectorBase<BaseFloat> &wave,
+  // void Compute(const VectorBase<BaseFloat> &wave,
+  //              BaseFloat vtln_warp,
+  //              Matrix<BaseFloat> *output,
+  //              Vector<BaseFloat> *wave_remainder = NULL);
+  void ComputeFeatures(const VectorBase<BaseFloat> &wave,
                BaseFloat vtln_warp,
-               Matrix<BaseFloat> *output,
-               Vector<BaseFloat> *wave_remainder = NULL);
+               Matrix<BaseFloat> *output);
 
  private:
   void ComputeGammatoneMatrix(Matrix<BaseFloat> *gammatone_matrix_); 

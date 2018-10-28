@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
       SubVector<BaseFloat> waveform(wave_data.Data(), this_chan);
       Matrix<BaseFloat> features;
       try {
-        gtf.Compute(waveform, vtln_warp_local, &features, NULL);
+        gtf.ComputeFeatures(waveform, vtln_warp_local, &features);
       } catch (...) {
         KALDI_WARN << "Failed to compute features for utterance "
                    << utt;

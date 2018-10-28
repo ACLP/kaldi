@@ -38,17 +38,19 @@ Dctf::Dctf(const DctfOptions &opts)
 Dctf::~Dctf() {
 }
 
-void Dctf::Compute(const VectorBase<BaseFloat> &wave,
-                   Matrix<BaseFloat> *output,
-                   Vector<BaseFloat> *wave_remainder) {
+//void Dctf::Compute(const VectorBase<BaseFloat> &wave,
+//                   Matrix<BaseFloat> *output,
+//                   Vector<BaseFloat> *wave_remainder) {
+void Dctf::ComputeFeatures(const VectorBase<BaseFloat> &wave,
+                   Matrix<BaseFloat> *output) {
   assert(output != NULL);
   int32 rows_out = NumFrames(wave.Dim(), opts_.frame_opts);
   int32 cols_out = opts_.num_ceps;
   if (rows_out == 0)
     KALDI_ERR << "Dctf::Compute, no frames fit in file (#samples is " << wave.Dim() << ")";
   output->Resize(rows_out, cols_out);
-  if (wave_remainder != NULL)
-    ExtractWaveformRemainder(wave, opts_.frame_opts, wave_remainder);
+//  if (wave_remainder != NULL)
+//    ExtractWaveformRemainder(wave, opts_.frame_opts, wave_remainder);
   Vector<BaseFloat> window;  // windowed waveform.
   for (int32 r = 0; r < rows_out; r++) {  // r is frame index..
     ExtractWindow(0, wave, r, opts_.frame_opts, feature_window_function_, &window, NULL);
