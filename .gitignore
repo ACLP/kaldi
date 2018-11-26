@@ -82,10 +82,10 @@ RemoteSystemsTempFiles
 /src/kaldi.mk.bak
 
 # /egs/
-/egs/*/s*/mfcc
-/egs/*/s*/plp
-/egs/*/s*/exp
-/egs/*/s*/data
+/egs/*/*/mfcc
+/egs/*/*/plp
+/egs/*/*/exp
+/egs/*/*/data
 
 # sre egs have v1,v2...
 /egs/sre*/v*/mfcc
