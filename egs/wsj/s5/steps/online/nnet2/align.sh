@@ -19,7 +19,6 @@ beam=10
 retry_beam=40
 iter=final
 use_gpu=no
-write_per_frame_acoustic_loglikes=""
 
 echo "$0 $@"  # Print the command line for logging
 
@@ -33,7 +32,6 @@ if [ $# != 4 ]; then
    echo "  --config <config-file>                           # config containing options"
    echo "  --nj <nj>                                        # number of parallel jobs"
    echo "  --cmd (utils/run.pl|utils/queue.pl <queue opts>) # how to run jobs."
-   echo "  --write-per-frame-acoustic-loglikes : Wspecifier for table of vectors containing the acoustic log-likelihoods per frame for each utterance. E.g. ark:foo/per_frame_logprobs.1.ark (string, default = "")"
    exit 1;
 fi
 
@@ -76,10 +74,9 @@ echo "$0: aligning data in $data using model from $srcdir, putting alignments in
 tra="ark:utils/sym2int.pl --map-oov $oov -f 2- $lang/words.txt $sdata/JOB/text|";
 
 $cmd JOB=1:$nj $dir/log/align.JOB.log \
-  compile-train-graphs --read-disambig-syms=$lang/phones/disambig.int $dir/tree $srcdir/${iter}.mdl $lang/L.fst "$tra" ark:- \| \
+  compile-train-graphs --read-disambig-syms=$lang/phones/disambig.int $dir/tree $srcdir/${iter}.mdl  $lang/L.fst "$tra" ark:- \| \
   nnet-align-compiled $scale_opts --use-gpu=$use_gpu --beam=$beam --retry-beam=$retry_beam \
-  --write-per-frame-acoustic-loglikes=$write_per_frame_acoustic_loglikes \
-  $srcdir/${iter}.mdl ark:- "$feats" "ark:|gzip -c >$dir/ali.JOB.gz" || exit 1;
+    $srcdir/${iter}.mdl ark:- "$feats" "ark:|gzip -c >$dir/ali.JOB.gz" || exit 1;
 
 echo "$0: done aligning data."
 

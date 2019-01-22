@@ -164,6 +164,9 @@ else
 fi
 
 if [ $stage -le 2 ]; then
+  echo "$0: working out number of frames of training data"
+  num_frames=$(steps/nnet2/get_num_frames.sh $data)
+  echo $num_frames > $dir/info/num_frames
   echo "$0: working out feature dim"
   feats_one="$(echo $feats | sed s:JOB:1:g)"
   if feat_dim=$(feat-to-dim "$feats_one" - 2>/dev/null); then
@@ -172,10 +175,6 @@ if [ $stage -le 2 ]; then
     feat-to-dim "$feats_one" -; exit 1
   fi
 fi
-
-echo "$0: working out number of frames of training data"
-num_frames=$(steps/nnet2/get_num_frames.sh $data)
-echo $num_frames > $dir/info/num_frames
 
 # Work out total number of archives. Add one on the assumption the
 # num-frames won't divide exactly, and we want to round up.

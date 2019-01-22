@@ -18,6 +18,3 @@ windows/NewGuidCmd.exe binary
 # Prevent git changing CR-LF to LF when archiving (patch requires CR-LF on Windows).
 **/*.patch            -text
 
-# Binaries:
-*.exe	-text
-*.dll	-text

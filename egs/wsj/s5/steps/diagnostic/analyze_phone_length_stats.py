@@ -31,7 +31,7 @@ args = parser.parse_args()
 # set up phone_int2text to map from phone to printed form.
 phone_int2text = {}
 try:
-    f = open(args.lang + "/phones.txt", "r")
+    f = open(args.lang + "/phones.txt", "r");
     for line in f.readlines():
         [ word, number] = line.split()
         phone_int2text[int(number)] = word
@@ -146,7 +146,7 @@ def GetPercentile(length_to_count, fraction):
             cur_count_total += count
             if cur_count_total >= count_cutoff:
                 return length
-        assert False # we shouldn't reach here.
+        assert false # we shouldn't reach here.
 
 def GetMean(length_to_count):
     total_phones = sum(length_to_count.values())
@@ -247,7 +247,7 @@ if total_phones['internal'] != 0.0:
 
     print("The optional-silence phone {0} occupies {1}% of frames overall ".format(
             optional_silence_phone_text, "%.1f" % opt_sil_total_frame_percent))
-    hours_total = total_frames['all'] / 360000.0
+    hours_total = total_frames['all'] / 360000.0;
     hours_nonsil = (total_frames['all'] - total_optsil_frames) / 360000.0
     print("Limiting the stats to the {0}% of frames not covered by an utterance-[begin/end] phone, "
           "optional-silence {1} occupies {2}% of frames.".format("%.1f" % internal_frame_percent,

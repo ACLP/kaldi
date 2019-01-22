@@ -22,7 +22,6 @@ core
 *.so
 *.dylib
 *.dll
-!/egs/wsj/s5/utils/phonetic_search/*
 
 # Compiled Static libraries
 *.lai
@@ -57,17 +56,9 @@ GSYMS
 
 # Windows executable, symbol and some weird files.
 *.exe
-!/egs/wsj/s5/utils/phonetic_search/*
 *.pdb
 *.exp
 *.manifest
-
-# misc workspace(s)
-.metadata
-.cproject
-.project
-.vscode
-RemoteSystemsTempFiles
 
 # /src/
 /src/.short_version
@@ -86,36 +77,6 @@ RemoteSystemsTempFiles
 /egs/*/*/plp
 /egs/*/*/exp
 /egs/*/*/data
-
-# sre egs have v1,v2...
-/egs/sre*/v*/mfcc
-/egs/sre*/v*/plp
-/egs/sre*/v*/exp
-/egs/sre*/v*/data
-
-# ignore all non s<#> and v<#>
-/egs/*/[^sv]*
-/egs/*/[sv][^0-9]*
-/egs/*/[sv][0-9]_*
-
-#/egs/wsj/s5/utils/afeka/
-#/egs/wsj/s5/utils/phonetic_search/
-
-# new egs folders
-/egs/ACLP_Decoder/
-/egs/Farsi/
-/egs/Hebrew/
-/egs/Levantine_Arabic/
-/egs/Multilingual/
-/egs/OpenKWS2016/
-/egs/digits/
-
-# specific egs folders...
-/egs/aurora4/s5z/
-/egs/gale_arabic/s5bZ*/
-/egs/gale_arabic/s5z*/
-/egs/gale_arabic/s5b_ella/
-/egs/sre10/v2ruthi*/
 
 # /tools/
 /tools/pocolm/
@@ -182,21 +143,6 @@ RemoteSystemsTempFiles
 /tools/phonetisaurus-g2p/
 /tools/mmseg-1.3.0.tar.gz
 /tools/mmseg-1.3.0/
-
-/tools/ffmpeg
-/tools/ffmpeg-git-20160504-64bit-static/
-/tools/ffmpeg-git-64bit-static.tar.xz
-/tools/kenlm/
-/tools/rnnlm-0.3e.tgz
-/tools/rnnlm-0.3e
-/tools/pocolm
-/tools/cuda-7.5
-/tools/cuda-9.1
-/tools/sama_3_1
-/tools/intel_mkl
-/tools/thrax-1.2.6.tar.gz
-/tools/thrax-1.2.6
-
 /kaldiwin_vs*
 /tools/cub-1.8.0.zip
 /tools/cub-1.8.0/

@@ -11,21 +11,14 @@ fi
 ! [ `basename $PWD` == tools ] && \
   echo "You must call this script from the tools/ directory" && exit 1;
 
-if [ -z "${PYTHON}" ]; then
-  echo "\$PYTHON not defined, installing for system default (`which python`)"
-  PYTHON=python
-else
-  echo "installing for python: ${PYTHON}"
-fi
-
 # Install python-devel package if not already available
 # first, makes sure distutils.sysconfig usable
-if ! $(${PYTHON} -c "import distutils.sysconfig" &> /dev/null); then
+if ! $(python -c "import distutils.sysconfig" &> /dev/null); then
     echo "$0: WARNING: python library distutils.sysconfig not usable, this is necessary to figure out the path of Python.h." >&2
     echo "Proceeding with installation." >&2
 else
   # get include path for this python version
-  INCLUDE_PY=$(${PYTHON} -c "from distutils import sysconfig as s; print(s.get_python_inc())")
+  INCLUDE_PY=$(python -c "from distutils import sysconfig as s; print(s.get_python_inc())")
   if [ ! -f "${INCLUDE_PY}/Python.h" ]; then
       echo "$0 : ERROR: python-devel/python-dev not installed" >&2
       if which yum >&/dev/null; then
@@ -36,7 +29,7 @@ else
       if which apt-get >&/dev/null; then
         # this is a debian system
         echo "$0: we recommend that you run (our best guess):"
-        echo " sudo apt-get install $(basename ${PYTHON})-dev"
+        echo " sudo apt-get install python-dev"
       fi
       exit 1
   fi
@@ -93,23 +86,23 @@ cd sequitur-g2p
 #the libstdc++ should no longer be used.
 if (g++ --version 2>/dev/null | grep -s  "LLVM version 8.0" >/dev/null) ; then
   #Apple fake-g++
-  make PYTHON=${PYTHON} CXX=g++ CC=gcc CPPFLAGS="-stdlib=libstdc++"
+  make CXX=g++ CC=gcc CPPFLAGS="-stdlib=libstdc++"
 else
-  make PYTHON=${PYTHON} CXX=g++ CC=gcc
+  make CXX=g++ CC=gcc
 fi
 
 # the next two lines deal with the issue that the new setup tools
 # expect the directory in which we will be installing to be visible
 # as module directory to python
-site_packages_dir=$(PYTHONPATH="" ${PYTHON} -m site --user-site | grep -oE "lib.*")
+site_packages_dir=$(PYTHONPATH="" python -m site --user-site | grep -oE "lib.*")
 SEQUITUR=$(pwd)/$site_packages_dir
 # some bits of info to troubleshoot this in case people have problems
-echo -n  >&2 "USER SITE: "; PYTHONPATH="" ${PYTHON} -m site --user-site
+echo -n  >&2 "USER SITE: "; PYTHONPATH="" python -m site --user-site
 echo >&2 "SEQUITUR_PACKAGE: ${site_packages_dir:-}"
 echo >&2 "SEQUITUR: $SEQUITUR"
 echo >&2 "PYTHONPATH: ${PYTHONPATH:-}"
 mkdir -p $SEQUITUR
-PYTHONPATH=${PYTHONPATH:-}:$SEQUITUR ${PYTHON} setup.py install --prefix `pwd`
+PYTHONPATH=${PYTHONPATH:-}:$SEQUITUR python setup.py install --prefix `pwd`
 ) || {
   echo >&2 "Problem installing sequitur!"
   exit 1
