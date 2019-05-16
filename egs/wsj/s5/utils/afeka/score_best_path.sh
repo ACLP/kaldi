@@ -21,7 +21,7 @@ if [ $# -ne 3 ]; then
   echo "e.g.: $(basename $0) data/dev data/lang_test exp/tri3/decode_dev"
   echo "Options:"
   echo "--cmd (run.pl|queue.pl...)      # specify how to run the sub-processes."
-  echo "--ref-text                      # option fo ref text data (default $data_dir/text)"
+  echo "--ref-text                      # option fo ref text data"
   echo "--min-lmwt <int>                # minumum LM-weight for lattice rescoring "
   echo "--max-lmwt <int>                # maximum LM-weight for lattice rescoring "
   exit 1;
@@ -51,16 +51,16 @@ filtering_cmd="cat"
 cp $ref_text $decode_dir/scoring/ref_text
 cat $decode_dir/scoring/ref_text | $filtering_cmd > $decode_dir/scoring/ref_text.filt || exit 1;
 
-# # Get the sequence on the best-path:
-# $cmd LMWT=$min_lmwt:$max_lmwt $decode_dir/scoring/log/best_path.LMWT.log \
-  # lattice-best-path --lm-scale=LMWT --word-symbol-table=$symtab \
-  # "ark:gunzip -c $decode_dir/lat.*.gz|" ark,t: \| \
-  # utils/int2sym.pl -f 2- $symtab '>' $decode_dir/scoring/LMWT.tra || exit 1;
-
-$cmd INV_ACWT=$min_lmwt:$max_lmwt $decode_dir/scoring/log/rescore_mbr.INV_ACWT.log \
-  lattice-mbr-decode --acoustic-scale=\`perl -e \"print 1.0/INV_ACWT\"\` --word-symbol-table=$symtab \
+# Get the sequence on the best-path:
+$cmd LMWT=$min_lmwt:$max_lmwt $decode_dir/scoring/log/best_path.LMWT.log \
+  lattice-best-path --lm-scale=LMWT --word-symbol-table=$symtab \
   "ark:gunzip -c $decode_dir/lat.*.gz|" ark,t: \| \
-  utils/int2sym.pl -f 2- $symtab '>' $decode_dir/scoring/INV_ACWT.tra
+  utils/int2sym.pl -f 2- $symtab '>' $decode_dir/scoring/LMWT.tra || exit 1;
+
+# $cmd INV_ACWT=$min_lmwt:$max_lmwt $decode_dir/scoring/log/rescore_mbr.INV_ACWT.log \
+  # lattice-mbr-decode --acoustic-scale=\`perl -e \"print 1.0/INV_ACWT\"\` --word-symbol-table=$symtab \
+  # "ark:gunzip -c $decode_dir/lat.*.gz|" ark,t: \| \
+  # utils/int2sym.pl -f 2- $symtab '>' $decode_dir/scoring/INV_ACWT.tra
 
 for LMWT in `seq $min_lmwt $max_lmwt`; do
   cat $decode_dir/scoring/$LMWT.tra | $filtering_cmd > $decode_dir/scoring/$LMWT.filt || exit 1;

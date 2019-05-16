@@ -83,7 +83,7 @@ def next_key_value(vad_ark_file):
 
 if (len(sys.argv) != 4):
 	print 'create_vad_segments.py <vad.ark> <out-segments> <expansion-size(sec)>'
-	sys.exit(2)
+	# sys.exit(2)
 
 with open(sys.argv[2], 'w') as vad_segments:
 	for k,v in next_key_value(sys.argv[1]):
