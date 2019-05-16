@@ -8,6 +8,10 @@
 # in data/local/, and converts it into the "canonical" form,
 # in various subdirectories of data/, e.g. data/lang, data/train, etc.
 
+# begin configuration section.
+validate_data=true
+#end configuration section.
+
 echo "$0 $@"  # Print the command line for logging
 . utils/parse_options.sh || exit 1;
 
@@ -22,6 +26,7 @@ fi
 datalist=$1
 
 echo "Preparing data for: $datalist"
+
 srcdir=data/local/data
 
 for x in $datalist; do 
@@ -46,13 +51,15 @@ for x in $datalist; do
     utils/filter_scp.pl data/$x/spk2utt $srcdir/$x/spk2gender > data/$x/spk2gender || exit 1;
   fi
 
-  if [ -f $srcdir/$x/text ]; then
-    utils/validate_data_dir.sh --no-feats data/$x || exit 1;
-  else
-    utils/validate_data_dir.sh --no-feats --no-text data/$x || exit 1;
+  if [ $validate_data ]; then
+    utils/fix_data_dir.sh data/$x
+    if [ -f $srcdir/$x/text ]; then
+      utils/validate_data_dir.sh --no-feats data/$x || exit 1;
+    else
+      utils/validate_data_dir.sh --no-feats --no-text data/$x || exit 1;
+    fi
   fi
-
-  wav-to-duration scp:$srcdir/${x}/wav.scp ark,t:$srcdir/${x}/dur.ark
+  wav-to-duration scp:$srcdir/${x}/wav.scp ark,t:$srcdir/${x}/dur.ark || exit 1;
 done
 
 echo ""

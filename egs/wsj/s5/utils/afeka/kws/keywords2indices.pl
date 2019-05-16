@@ -1,8 +1,5 @@
 #!/usr/bin/env perl
-
-# Copyright 2012  Johns Hopkins University (Author: Yenda Trmal)
-# Apache 2.0.
-# Modified by Ella Erlich
+# based /storage/kaldi-trunk/egs/mini_librispeech/s5/local/kws/keywords_to_indices.pl
 
 use Data::Dumper;
 $Data::Dumper::Indent = 1;
@@ -19,8 +16,8 @@ sub permute {
   }
 
   return map {
-    my $left = $_;
-    map([@$left, $_], @$last)
+  my $left = $_;
+  map([@$left, $_], @$last)
   }
   permute(@_);
 }
@@ -56,8 +53,8 @@ for($x = 0; $x < 2; $x++) {
 $symtab = shift @ARGV;
 if (!defined $symtab) {
   print STDERR "Usage: sym2int.pl [options] symtab [input transcriptions] > output transcriptions\n" .
-    "options: [--map-oov <oov-symbol> ]  [-f <field-range> ]\n" .
-    "note: <field-range> can look like 4-5, or 4-, or 5-, or 1.\n";
+  "options: [--map-oov <oov-symbol> ]  [-f <field-range> ]\n" .
+  "note: <field-range> can look like 4-5, or 4-, or 5-, or 1.\n";
 }
 open(F, "<:encoding(UTF-8)", $symtab) || die "Error opening symbol table file $symtab";
 while(<F>) {
@@ -121,5 +118,5 @@ while (<>) {
   }
 }
 
-print STDERR "Remaped/ignored $oov_count phrases...\n";
+print STDERR "Found $oov_count phrases containing (at least one) OOV...\n";
 
