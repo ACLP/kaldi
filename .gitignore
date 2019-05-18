@@ -83,15 +83,10 @@ RemoteSystemsTempFiles
 
 # /egs/
 /egs/*/*/mfcc
+/egs/*/*/mfcc_hires
 /egs/*/*/plp
 /egs/*/*/exp
 /egs/*/*/data
-
-# sre egs have v1,v2...
-/egs/sre*/v*/mfcc
-/egs/sre*/v*/plp
-/egs/sre*/v*/exp
-/egs/sre*/v*/data
 
 # ignore all non s<#> and v<#>
 /egs/*/[^sv]*
