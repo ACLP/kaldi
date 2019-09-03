@@ -7,6 +7,7 @@ set -e
 
 # Begin configuration section.
 stage=1
+default_dict=local/default.dict
 start_field=2 # 1 without segment ID
 dev_portion=10
 ngram_order=3
@@ -41,10 +42,10 @@ lang_name=$6
 lang_out=data/lang_$lang_name
 if [ -n "$out_dir" ]; then lang_out=$out_dir ; fi
 
-dict=$lang_out/dict
+dict_dir=$lang_out/dict
 data=$lang_out/data
 
-lexicon=$dict/lexicon.txt
+lexicon=$dict_dir/lexicon.txt
 words=$lang_out/words.txt
 vocab=$lang_out/vocab
 train_text=$data/train.gz
@@ -56,7 +57,7 @@ get_seeded_random()
   openssl enc -aes-256-ctr -pass pass:"$seed" -nosalt </dev/zero 2>/dev/null
 }
 
-for f in local/default.dict "$lex" "$orig_lm" "$text" ; do
+for f in "$default_dict $lex $orig_lm $text" ; do
   [ ! -f $f ] && echo "$0: No such file $f" && exit 1;
 done
 
@@ -65,31 +66,33 @@ if [ $stage -le 1 ]; then
   echo "Prepare lang dir - $lang_out on " `date`
   echo "--------------------------------------------------------------------------------"
 
-  [ ! -d $lang_out ] && mkdir -p $lang_out
-  [ ! -d $dict ] && mkdir -p $dict
-  [ ! -d $data ] && mkdir -p $data
+  [ ! -d $lang_dir ] && mkdir -p $lang_dir
+  [ ! -d $dict_dir ] && mkdir -p $dict_dir
 
+  cat $default_dict | sed -e "s#\t# #g" > $dict_dir/default.dict
   cat $lex | sed -e "s#\t# #g" | sort -u > $lexicon.temp
-  cp local/default.dict $lexicon
-  #awk "BEGIN { while ((getline < \"local/default.dict\")>0) lex[\$2] = 1} { if (! (\$2 in lex)) print \$0 }" $lexicon.temp >> $lexicon
-  awk "BEGIN { while ((getline < \"local/default.dict\")>0) lex[\$1] = 1} { if (! (\$1 in lex)) print \$0 }" $lexicon.temp >> $lexicon
 
-  cp $src_dict_dir/extra_questions.txt $dict/extra_questions.txt
-  cp $src_dict_dir/silence_phones.txt $dict/silence_phones.txt
-  cp $src_dict_dir/optional_silence.txt $dict/optional_silence.txt
-  cp $src_dict_dir/nonsilence_phones.txt $dict/nonsilence_phones.txt
+  cp $dict_dir/default.dict $lexicon
+  #awk "BEGIN { while ((getline < \"$dict_dir/default.dict\")>0) lex[\$2] = 1} { if (! (\$2 in lex)) print \$0 }" $lexicon.temp >> $lexicon
+  awk "BEGIN { while ((getline < \"$dict_dir/default.dict\")>0) lex[\$1] = 1} { if (! (\$1 in lex)) print \$0 }" $lexicon.temp >> $lexicon
+
+  cp $src_dict_dir/extra_questions.txt $dict_dir/extra_questions.txt
+  cp $src_dict_dir/silence_phones.txt $dict_dir/silence_phones.txt
+  cp $src_dict_dir/optional_silence.txt $dict_dir/optional_silence.txt
+  cp $src_dict_dir/nonsilence_phones.txt $dict_dir/nonsilence_phones.txt
   if [ -f $src_dict_dir/silprob.txt ]; then
-    cp $src_dict_dir/silprob.txt $dict/silprob.txt
+    cp $src_dict_dir/silprob.txt $dict_dir/silprob.txt
   fi
 
   utils/prepare_lang.sh --phone-symbol-table $src_lang_dir/phones.txt \
-    $dict "<unk>" $lang_out $lang_out || exit 1;
+    $dict_dir "<unk>" $lang_out $lang_out || exit 1;
 fi
 
 arpa_lm=$lang_out/lm.arpa.gz  # note: output is $arpa_lm
 
 if [ $stage -le 2 ]; then
   if [ ! -f $arpa_lm ]; then
+    [ ! -d $data ] && mkdir -p $data
     echo "-------------------------------------"
     echo "Building an SRILM language model - ${ngram_order}gram on " `date`
     echo "-------------------------------------"

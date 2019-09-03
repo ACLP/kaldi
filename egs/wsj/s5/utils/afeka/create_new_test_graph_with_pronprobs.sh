@@ -8,6 +8,7 @@ set -e
 
 # Begin configuration section.
 stage=-10
+default_dict=local/default.dict
 start_field=2 # 1 without segment ID, 2 with segment ID
 dev_portion=10
 heldout_sent=10000 #max utterances for validation
@@ -24,10 +25,11 @@ echo "$0 $@"  # Print the command line for logging
 . utils/parse_options.sh || exit 1;
 
 if [ $# -ne 4 ]; then
-  echo "Usage: $(basename $0) <src-lang-dir> <src-dict-dir> <dict-file> <lang-name>"
+  echo "Usage: $(basename $0) <src-lang-dir> <src-dict-dir> <lex-file> <lang-name>"
   echo "e.g.: $(basename $0) data/lang data/local/dict lexicon.dict test"
   echo "Options:"
   echo "main options (for others, see top of script file)"
+  echo "--default-dict       # lexicon that append final lexicon"
   echo "--lm-tool            # build statistical language models ( default SRILM, other options: KALDILM, POCOLM)"
   echo "--start-field        # text start field ( default 2, with utt ID)"
   echo "--dev-portion        # percent data for dev (default 10)"
@@ -40,16 +42,16 @@ fi
 
 src_lang_dir=$1
 src_dict_dir=$2
-dict=$3
+lex=$3
 lang_name=$4
 
 lang_dir=data/lang_$lang_name
 if [ -n "$out_dir" ]; then lang_dir=$out_dir ; fi
 
+dict_nosp_dir=$lang_dir/dict_nosp
 dict_dir=$lang_dir/dict
-data=$lang_dir/data
 
-lexicon=$dict_dir/lexicon.txt
+data=$lang_dir/data
 words=$lang_dir/words.txt
 vocab=$lang_dir/vocab
 train_text=$data/train.gz
@@ -68,7 +70,7 @@ if [ -f $arpa_lm ]; then
   text=$lang_dir/input.text
 fi
 
-for f in local/default.dict "$dict" "$text" "$gmm_dir/pron_counts_nowb.txt" "$gmm_dir/sil_counts_nowb.txt" "$gmm_dir/pron_bigram_counts_nowb.txt"; do
+for f in "$default_dict" "$lex" "$text" "$gmm_dir/pron_counts_nowb.txt" "$gmm_dir/sil_counts_nowb.txt" "$gmm_dir/pron_bigram_counts_nowb.txt"; do
   [ ! -f $f ] && echo "$0: No such file $f" && exit 1;
 done
 
@@ -78,28 +80,30 @@ if [ $stage -le 1 ]; then
   echo "--------------------------------------------------------------------------------"
 
   [ ! -d $lang_dir ] && mkdir -p $lang_dir
+  [ ! -d $dict_nosp_dir ] && mkdir -p $dict_nosp_dir
   [ ! -d $dict_dir ] && mkdir -p $dict_dir
 
-  cat $dict | sed -e "s#\t# #g" | sort -u > $lexicon.temp
-  cp local/default.dict $lexicon
-  #awk "BEGIN { while ((getline < \"local/default.dict\")>0) lex[\$2] = 1} { if (! (\$2 in lex)) print \$0 }" $lexicon.temp >> $lexicon
-  awk "BEGIN { while ((getline < \"local/default.dict\")>0) lex[\$1] = 1} { if (! (\$1 in lex)) print \$0 }" $lexicon.temp >> $lexicon
+  cat $default_dict | sed -e "s#\t# #g" > $dict_nosp_dir/default.dict
+  cat $lex | sed -e "s#\t# #g" | sort -u > $dict_nosp_dir/lexicon.txt.temp
 
-  cp $src_dict_dir/extra_questions.txt $dict_dir/extra_questions.txt
-  cp $src_dict_dir/silence_phones.txt $dict_dir/silence_phones.txt
-  cp $src_dict_dir/optional_silence.txt $dict_dir/optional_silence.txt
-  cp $src_dict_dir/nonsilence_phones.txt $dict_dir/nonsilence_phones.txt
+  cp $dict_nosp_dir/default.dict $dict_nosp_dir/lexicon.txt
+  #awk "BEGIN { while ((getline < \"$dict_nosp_dir/default.dict\")>0) lex[\$2] = 1} { if (! (\$2 in lex)) print \$0 }" $dict_nosp_dir/lexicon.txt.temp >> $dict_nosp_dir/lexicon.txt
+  awk "BEGIN { while ((getline < \"$dict_nosp_dir/default.dict\")>0) lex[\$1] = 1} { if (! (\$1 in lex)) print \$0 }" $dict_nosp_dir/lexicon.txt.temp >> $dict_nosp_dir/lexicon.txt
+
+  cp $src_dict_dir/extra_questions.txt $dict_nosp_dir/extra_questions.txt
+  cp $src_dict_dir/silence_phones.txt $dict_nosp_dir/silence_phones.txt
+  cp $src_dict_dir/optional_silence.txt $dict_nosp_dir/optional_silence.txt
+  cp $src_dict_dir/nonsilence_phones.txt $dict_nosp_dir/nonsilence_phones.txt
   if [ -f $src_dict_dir/silprob.txt ]; then
-    cp $src_dict_dir/silprob.txt $dict_dir/silprob.txt
+    cp $src_dict_dir/silprob.txt $dict_nosp_dir/silprob.txt
   fi
   
   #adding pronunciation probability and sp (short silence) prob before and after a word
   utils/afeka/dict_dir_add_pronprobs.sh --max-normalize true \
-    $dict_dir $gmm_dir/pron_counts_nowb.txt $gmm_dir/sil_counts_nowb.txt \
-    $gmm_dir/pron_bigram_counts_nowb.txt ${dict_dir}_sp || exit 1;
+    $dict_nosp_dir $gmm_dir/pron_counts_nowb.txt $gmm_dir/sil_counts_nowb.txt \
+    $gmm_dir/pron_bigram_counts_nowb.txt $dict_dir || exit 1;
 fi
 
-dict_dir=${dict_dir}_sp
 lexicon=$dict_dir/lexicon.txt
 
 if [ $stage -le 2 ]; then
@@ -108,9 +112,7 @@ if [ $stage -le 2 ]; then
 fi
 
 if [ $stage -le 3 ]; then
-
   if [ ! -f $arpa_lm ]; then
-
     [ ! -d $data ] && mkdir -p $data
     cut -d' ' -f1 $lexicon | grep -v '\#0' | grep -v '<eps>' | uniq > $vocab
     cat $text | cut -d ' ' -f $start_field- > $data/text.orig

@@ -15,6 +15,7 @@ egs_opts=
 chunk_width=20
 
 extra_left_context=60
+extra_right_context=0
 
 relu_dim=256
 cell_dim=256

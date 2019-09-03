@@ -127,16 +127,18 @@ cat $ctm | perl -e '
 # Creates a text file from the ctm, which will be used in Levenshtein alignment.
 # Note that we remove <eps> in the text file.
 cat $new_data_dir/tmp/ctm | perl -e '
+  $line_num = 0;
   $previous_wav = "";
   $previous_channel = "";
   $text = "";
   while (<STDIN>) {
+    $line_num += 1;
     chomp;
     @col = split;
     @col >= 5 || die "Error: bad line $_\n";
     if ($previous_wav eq $col[0]) {
       $previous_channel eq $col[1] ||
-        die "Error: more than one channels detected\n";
+        die "Error: more than one channels detected (line number = $line_num)\n";
       if ($col[4] ne "<eps>") {
         $text .= " $col[4]";
       }

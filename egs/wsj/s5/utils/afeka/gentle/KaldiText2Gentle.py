@@ -27,7 +27,6 @@ if __name__ == '__main__':
         print 'eg. %s data/test data/GentleTextTest' % (sys.argv[0],)
         sys.exit(1)
 
-
     SegmentsFile = sys.argv[1] + "/segments"
     TextFile = sys.argv[1] + "/text"
     GentleTextDir = sys.argv[2]
@@ -38,29 +37,29 @@ if __name__ == '__main__':
     out_text=''
     for indx, seg_line in enumerate(open(SegmentsFile)):
         seg_line.rstrip('\n')
-        seg_tok  = filter(None, re.split("[, \t\r\n]+", seg_line))
+        seg_tok = filter(None, re.split("[, \t\r\n]+", seg_line))
         num_seg_tok=len(seg_tok)
         if num_seg_tok != 4:
             print 'Illegal segments file format: %s'%seg_line
             sys.exit()
         SegLbl = seg_tok[0]
         RecLbl = seg_tok[1]
-        #print 'SegLbl: %s RecLbl: %s\n'%(SegLbl, RecLbl)  
+        #print 'SegLbl: %s RecLbl: %s\n'%(SegLbl, RecLbl)
 
         if (CurrRecLbl != '') & (CurrRecLbl != RecLbl):
             out_text_fp = open(GentleTextDir+"/"+CurrRecLbl+".txt", "w")
             out_text_fp.write('%s\n' % (out_text))
             #print 'TxtSegLbl: %s text: %s\n'%(TxtSegLbl, out_text)
-            #sys.exit()  
+            #sys.exit()
             out_text=''
             out_text_fp.close()
-            print 'Text written to file: %s'%(GentleTextDir+"/"+CurrRecLbl+".txt") 
+            print 'Text written to file: %s'%(GentleTextDir+"/"+CurrRecLbl+".txt")
             
-        CurrRecLbl = RecLbl 
+        CurrRecLbl = RecLbl
         
-        txt_line = text_fp.readline()    
+        txt_line = text_fp.readline()
         txt_line = txt_line.rstrip('\n')
-        txt_tok  = filter(None, re.split("[, \t\r\n]+", txt_line))
+        txt_tok = filter(None, re.split("[, \t\r\n]+", txt_line))
         num_txt_tok=len(txt_tok)
         TxtSegLbl = txt_tok[0]
         if TxtSegLbl != SegLbl:

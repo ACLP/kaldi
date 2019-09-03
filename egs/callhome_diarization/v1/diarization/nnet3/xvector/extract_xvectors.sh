@@ -99,8 +99,9 @@ if [ $stage -le 0 ]; then
     segments=$dir/pruned_segments
   else
     segments=$data/segments
-  fi
-  utils/data/get_uniform_subsegments.py \
+  fi 
+
+    utils/data/get_uniform_subsegments.py \
       --max-segment-duration=$window \
       --overlap-duration=$(perl -e "print ($window-$period);") \
       --max-remaining-duration=$min_segment \

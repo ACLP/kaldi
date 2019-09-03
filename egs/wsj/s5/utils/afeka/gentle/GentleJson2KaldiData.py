@@ -34,19 +34,21 @@ class SegClass:
 
 class WordInfo:
     def __init__(self):
-        self.Word     = ''
-        self.Idx      = -1
-        self.Begin    = -1.0
-        self.End      = -1.0
+        self.Word           = ''
+        self.Idx            = -1
+        self.Begin          = -1.0
+        self.End            = -1.0
+        self.startOffset    = -1
 
-    def __init__(self, Idx, Word, Begin, End):
-        self.Set(Idx, Word, Begin, End)
+    def __init__(self, Idx, Word, Begin, End, startOffset):
+        self.Set(Idx, Word, Begin, End, startOffset)
 
-    def Set(self, Idx, Word, Begin, End):
-        self.Word     = Word
-        self.Idx      = Idx
-        self.Begin    = Begin
-        self.End      = End
+    def Set(self, Idx, Word, Begin, End, startOffset):
+        self.Word       = Word
+        self.Idx        = Idx
+        self.Begin      = Begin
+        self.End        = End
+        self.startOffset= startOffset
 
 ########################
 class KaldiFiles:
@@ -75,14 +77,17 @@ def ParseArgs():
     parser.add_argument("GentleJsonDir",     help = "Input Gentle data dir")
     parser.add_argument("AudioDir",          help = "Input audio data dir")
     parser.add_argument("KaldiDataOutDir",   help = "output kaldi data dir")
-    parser.add_argument("-SilGapTh",         help = "Silence duration between words, defining a segment end", default = '1.0')
+    parser.add_argument("-SilGapTh",         help = "Silence duration between words, defining a segment end", default = '0.4')
     parser.add_argument("-MaxSegLen",        help = "Maximum segment target length ", default = '15.0')
     parser.add_argument("-MinSilGap",        help = "Min Silence duration between words, to define segment end when segment length above TH", default = '0.3')
     parser.add_argument("-MinSegLen",        help = "Min Duration of a speech segment", default = '0.3')
+    parser.add_argument("-SegMargin",        help = "Duaration added at speech segment borders", default = '0.1')
     parser.add_argument("-MaxNonAlignedRate",help = "Max rate of non aligned words to num of words in rec", default = '0.1')
     
 	#parser.add_argument("-kald_data_in_dir",    help = "Input kaldi data dir", default = '')
     #parser.add_argument("-audio_file_ext", help = "audio file extension", default = '.wav')
+    
+    print '>>>>>>>>>>>>>>>>>>>>>>  Note bug in pass 2 collecting text see ctm2kaldidata'
     
     print(' '.join(sys.argv))
 	
@@ -119,6 +124,7 @@ def LoadGentleJson(GentleDir, FileKey, WordsLocList):
         
         json_words = json_data.get('words')
         for count, word in enumerate(json_words):
+            startOffset = word.get('startOffset') # Just for debug - aligned phoneme index
             txt   = (word.get('word')).strip()
             if 'start' in word:
                 start = word.get('start')
@@ -131,12 +137,12 @@ def LoadGentleJson(GentleDir, FileKey, WordsLocList):
                     nWords = nWords + 1
             else:
                 end = -1
-            WordInf = WordInfo(count, txt, start, end)
+            WordInf = WordInfo(count, txt, start, end, startOffset)
             WordsLocList.append(WordInf)
         return AccWordLen/nWords
 #########################		
 def FixPreNonAlignedSeg(AlignedWordList, iWordIdx, Seg):
-    # Current word index is the 1st non aligned
+    # Current word index is the 1st non aligned - see if u can create a segment untill this point
     iWordIdx = iWordIdx - 1
     while iWordIdx > Seg.BegIdx:
         SilGap = AlignedWordList[iWordIdx].Begin-AlignedWordList[iWordIdx-1].End
@@ -200,10 +206,11 @@ def IgnoreNonAlignedSeg(AlignedWordList, iWordIdx, nNotAligned):
     #print "P3"
     return [], iWordIdx, nNotAligned			
 #########################
-def WordList2Segments(AlignedWordList, SegList, WordSpkrVec, SilGapTh, MaxSegLen, MinSilGap, MinSegLen, MaxNonAlignedRate):
+def WordList2Segments(AlignedWordList, SegList, WordSpkrVec, SilGapTh, MaxSegLen, MinSilGap, MinSegLen, SegMargin, MaxNonAlignedRate):
 
-    # First pass: add to segments list any segment satisfying silence gap rules
-	# Second pass: Merge segments to shorter than TH to nearest segment
+    # 1st pass: add to segments list any segment satisfying silence gap rules
+	# 2nd pass: Add margin to segments and merge if they meet adjacent segment
+	# 3rd pass: Merge segments shorter than TH to nearest segment
 	
 	# Note 
 	# 1. With no other source of info we set the speaker Id as Rec Id
@@ -236,14 +243,16 @@ def WordList2Segments(AlignedWordList, SegList, WordSpkrVec, SilGapTh, MaxSegLen
         else: # Not first word in recording
             if WordInf.Begin == -1.0:
                 print ">>> Non aligned words in the recording <<<<<<"
+                print SegList[len(SegList)-1].__dict__
+                print WordInf.__dict__
                 Seg = FixPreNonAlignedSeg(AlignedWordList, iWordIdx, Seg)
                 if Seg != []:
                     Seg.SegId = '%s_%07d_%07d'%(Seg.SpkrId, Seg.Begin*100, Seg.End*100)
                     SegList.append(Seg)
-                    print "seg %d shortened due to perceeding misalignment"%(SegIdx)
+                    print "seg %d ending time %f  shortened due to perceeding misalignment"%(SegIdx, Seg.End)
                     SegIdx = SegIdx + 1
                 else:
-                    print "seg %d deleted due to perceeding misalignment"%(SegIdx)
+                    print "seg %d deleted due to perceeding word %d misalignment"%(SegIdx, WordInf.Idx)
                
                 Seg, iWordIdx, nNotAligned = IgnoreNonAlignedSeg(AlignedWordList, iWordIdx, nNotAligned)
                 if Seg == []:
@@ -269,6 +278,7 @@ def WordList2Segments(AlignedWordList, SegList, WordSpkrVec, SilGapTh, MaxSegLen
                     Seg.AddWord(WordInf.Word)
 		
         iWordIdx = iWordIdx + 1
+        #print Seg.__dict__
 	
 	# End last segment
     if Seg != []:
@@ -278,12 +288,47 @@ def WordList2Segments(AlignedWordList, SegList, WordSpkrVec, SilGapTh, MaxSegLen
         SegList.append(Seg)
     #print SegList[len(SegList)-1].__dict__
     #sys.exit()
-    #return
+    return 0
     if nNotAligned > MaxNonAlignedWords:
         print '%d unaligned words in file above TH %d'%(nNotAligned, MaxNonAlignedWords)
         return -1		
 	
-	# 2nd pass
+	# 2nd pass: Add margin to segments and merge if they meet adjacent segment
+    for Seg in SegList:
+        Seg.Begin = max(0,Seg.Begin-SegMargin)
+        Seg.End = Seg.End+SegMargin
+    
+    OrigSegLen = len(SegList)
+    # In case of last segment, don't add
+    SegList[OrigSegLen-1].End = SegList[OrigSegLen-1].End-SegMargin
+    
+    nDeletedSegs = 0
+    print "Seg list len before margin addition:%d"%(OrigSegLen)
+    iSeg = 1
+    while iSeg < OrigSegLen-nDeletedSegs:
+        if  ((SegList[iSeg].Begin - SegList[iSeg-1].End) < MinSilGap):
+            if (SegList[iSeg-1].SpkrId == SegList[iSeg].SpkrId): # Same speaker - may merge
+                # Merge segments data and delete unused locations
+                # Update end of prev
+                SegList[iSeg-1].End = SegList[iSeg].End
+                SegList[iSeg-1].SegId = '%s_%07.2f_%07.2f'%(SegList[iSeg-1].SpkrId, SegList[iSeg-1].Begin, SegList[iSeg-1].End)
+            
+                # Merge text
+                for Word in SegList[iSeg].Words:
+                    SegList[iSeg-1].Words.append(Word)
+                
+                # Remove seg
+                SegList.remove(SegList[iSeg])
+                nDeletedSegs = nDeletedSegs + 1
+            else: # Just fix begin & end to be the "touching"
+                BorderTime = (SegList[iSeg].Beg + SegList[iSeg-1].End)/2
+                SegList[iSeg].Beg =  BorderTime                
+                SegList[iSeg-1].End =  BorderTime                
+        else: # No merge, continue
+            iSeg = iSeg + 1
+        
+    
+	# 3rd pass (merging short segs)
     OrigSegLen = len(SegList)
     nDeletedSegs = 0
     print "Seg list len before short seg merge:%d"%(OrigSegLen)
@@ -305,16 +350,33 @@ def WordList2Segments(AlignedWordList, SegList, WordSpkrVec, SilGapTh, MaxSegLen
                 RightGap = SegList[iSeg+1].Begin - SegList[iSeg].End
                 print "RightGap %f"%(RightGap)
             if (LeftGap < RightGap) & (LeftGap != float("inf")):
+                # Update end of prev
                 SegList[iSeg-1].End = SegList[iSeg].End
                 SegList[iSeg-1].SegId = '%s_%07.2f_%07.2f'%(SegList[iSeg-1].SpkrId, SegList[iSeg-1].Begin, SegList[iSeg-1].End)
+
+                # Merge text
+                for Word in SegList[iSeg].Words:
+                    SegList[iSeg-1].Words.append(Word)
+                
+                # Remove seg
                 SegList.remove(SegList[iSeg])
                 nDeletedSegs = nDeletedSegs + 1
                 print "Merged to Left"				
             else:
                 if (RightGap != float("inf")):			
+                    # Update begin of next
                     SegList[iSeg+1].Begin = SegList[iSeg].Begin
                     SegList[iSeg+1].SegId = '%s_%07.2f_%07.2f'%(SegList[iSeg+1].SpkrId, SegList[iSeg+1].Begin, SegList[iSeg+1].End)
-                    #SegList[iSeg].Reset()	
+
+                    # Merge text
+                    TmpWords = []
+                    for Word in SegList[iSeg].Words:
+                        TmpWords.append(Word)
+                    for Word in SegList[iSeg+1].Words:
+                        TmpWords.append(Word)
+                    SegList[iSeg+1].Words = TmpWords
+
+                    # Remove seg
                     SegList.remove(SegList[iSeg])	
                     nDeletedSegs = nDeletedSegs + 1
                     print "Merged to Right"
@@ -354,7 +416,7 @@ if __name__ == '__main__':
 	# Description:
 	# For each json file in Gentle json directory
 	# Follow word timings, if duration between end of word to start of next word is larger than SilGapTh
-	# add current word to currwnt segment otherwise or current segment length higher than MaxSegLen and 
+	# add current word to current segment otherwise or current segment length higher than MaxSegLen and 
 	# duration between words is larger than MinSilGap, create a segment and initialize a new segment.
 	# After all json files are processed create kaldi data files
 	
@@ -367,6 +429,7 @@ if __name__ == '__main__':
     MaxSegLen = float(args.MaxSegLen)
     MinSilGap = float(args.MinSilGap)
     MinSegLen = float(args.MinSegLen)
+    SegMargin = float(args.SegMargin)
     MaxNonAlignedRate = float(args.MaxNonAlignedRate)
 	
     #MinSegLen=7.0
@@ -376,6 +439,7 @@ if __name__ == '__main__':
     print 'MaxSegLen  [sec]  %f'%(MaxSegLen) 
     print 'MinSilGap  [sec]  %f'%(MinSilGap) 
     print 'MinSegLen  [sec]  %f'%(MinSegLen)
+    print 'SegMargin  [sec]  %f'%(SegMargin)
     print 'MaxNonAlignedRate %f'%(MaxNonAlignedRate)
     WavExt = '.wav'	
 	
@@ -398,14 +462,14 @@ if __name__ == '__main__':
                     
                 AlignedWordList = []
                 fAvWordDur = LoadGentleJson(args.GentleJsonDir, RecKey, AlignedWordList)
-               
+                
                 print 'Align words list size: %d'%(len(AlignedWordList))
                 #print AlignedWordList[0].__dict__
                 #sys.exit(1)
 
 				# Temp vector for speaker Id for every word (for future integration of speaker Id)
 				# currently Speaker id is identical to the file key
-				# In case we have some diarization data tike RTTM file we can sync it with the word timings in AlignedWordList 
+				# In case we have some diarization data like RTTM file we can sync it with the word timings in AlignedWordList 
 				# to create the WordSpkrVec below 
                 WordSpkrVec = []
                 for i in range(len(AlignedWordList)):
@@ -414,7 +478,7 @@ if __name__ == '__main__':
                 #sys.exit(1)
 				
                 SegList = []
-                RetVal = WordList2Segments(AlignedWordList, SegList, WordSpkrVec, SilGapTh, MaxSegLen, MinSilGap, MinSegLen, MaxNonAlignedRate)
+                RetVal = WordList2Segments(AlignedWordList, SegList, WordSpkrVec, SilGapTh, MaxSegLen, MinSilGap, MinSegLen, SegMargin, MaxNonAlignedRate)
                 #print SegList[len(SegList)-1].__dict__
                 #sys.exit(1)
                 if RetVal != 0:

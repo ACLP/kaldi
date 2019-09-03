@@ -8,6 +8,7 @@ set -e
 
 # Begin configuration section.
 stage=-10
+default_dict=local/default.dict
 start_field=2 # 1 without segment ID, 2 with segment ID
 dev_portion=10
 heldout_sent=10000 #max utterances for validation
@@ -23,10 +24,11 @@ echo "$0 $@"  # Print the command line for logging
 . utils/parse_options.sh || exit 1;
 
 if [ $# -ne 4 ]; then
-  echo "Usage: $(basename $0) <src-lang-dir> <src-dict-dir> <dict-file> <lang-name>"
+  echo "Usage: $(basename $0) <src-lang-dir> <src-dict-dir> <lex-file> <lang-name>"
   echo "e.g.: $(basename $0) data/lang data/local/dict lexicon.dict test"
   echo "Options:"
   echo "main options (for others, see top of script file)"
+  echo "--default-dict       # lexicon that append final lexicon"
   echo "--lm-tool            # build statistical language models ( default SRILM, other options: KALDILM, POCOLM)"
   echo "--start-field        # text start field ( default 2, with utt ID)"
   echo "--dev-portion        # percent data for dev (default 10)"
@@ -39,7 +41,7 @@ fi
 
 src_lang_dir=$1
 src_dict_dir=$2
-dict=$3
+lex=$3
 lang_name=$4
 
 lang_dir=data/lang_$lang_name
@@ -56,8 +58,6 @@ dev_text=$data/dev.gz
 
 arpa_lm=$lang_dir/lm.arpa.gz  # note: output is $arpa_lm
 
-echo "using lex: $lexicon"
-
 get_seeded_random()
 {
   seed="$1"
@@ -69,7 +69,7 @@ if [ -f $arpa_lm ]; then
   text=$lang_dir/input.text
 fi
 
-for f in local/default.dict "$dict" "$text" ; do
+for f in "$default_dict" "$lex" "$text"; do
   [ ! -f $f ] && echo "$0: No such file $f" && exit 1;
 done
 
@@ -81,10 +81,12 @@ if [ $stage -le 1 ]; then
   [ ! -d $lang_dir ] && mkdir -p $lang_dir
   [ ! -d $dict_dir ] && mkdir -p $dict_dir
 
-  cat $dict | sed -e "s#\t# #g" | sort -u > $lexicon.temp
-  cp local/default.dict $lexicon
-  #awk "BEGIN { while ((getline < \"local/default.dict\")>0) lex[\$2] = 1} { if (! (\$2 in lex)) print \$0 }" $lexicon.temp >> $lexicon
-  awk "BEGIN { while ((getline < \"local/default.dict\")>0) lex[\$1] = 1} { if (! (\$1 in lex)) print \$0 }" $lexicon.temp >> $lexicon
+  cat $default_dict | sed -e "s#\t# #g" > $dict_dir/default.dict
+  cat $lex | sed -e "s#\t# #g" | sort -u > $lexicon.temp
+
+  cp $dict_dir/default.dict $lexicon
+  #awk "BEGIN { while ((getline < \"$dict_dir/default.dict\")>0) lex[\$2] = 1} { if (! (\$2 in lex)) print \$0 }" $lexicon.temp >> $lexicon
+  awk "BEGIN { while ((getline < \"$dict_dir/default.dict\")>0) lex[\$1] = 1} { if (! (\$1 in lex)) print \$0 }" $lexicon.temp >> $lexicon
 
   cp $src_dict_dir/extra_questions.txt $dict_dir/extra_questions.txt
   cp $src_dict_dir/silence_phones.txt $dict_dir/silence_phones.txt
@@ -101,9 +103,7 @@ if [ $stage -le 2 ]; then
 fi
 
 if [ $stage -le 3 ]; then
-
   if [ ! -f $arpa_lm ]; then
-
     [ ! -d $data ] && mkdir -p $data
     cut -d' ' -f1 $lexicon | grep -v '\#0' | grep -v '<eps>' | uniq > $vocab
     cat $text | cut -d ' ' -f $start_field- > $data/text.orig

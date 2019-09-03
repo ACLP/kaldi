@@ -51,7 +51,7 @@ filtering_cmd="cat"
 cp $ref_text $decode_dir/scoring/ref_text
 cat $decode_dir/scoring/ref_text | $filtering_cmd > $decode_dir/scoring/ref_text.filt || exit 1;
 
-# # Get the sequence on the best-path:
+# Get the sequence on the best-path:
 # $cmd LMWT=$min_lmwt:$max_lmwt $decode_dir/scoring/log/best_path.LMWT.log \
   # lattice-best-path --lm-scale=LMWT --word-symbol-table=$symtab \
   # "ark:gunzip -c $decode_dir/lat.*.gz|" ark,t: \| \

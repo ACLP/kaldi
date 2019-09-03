@@ -14,9 +14,13 @@ src=$1
 dst=$2
 
 # all utterances are FLAC compressed
-if ! which flac >&/dev/null; then
-   echo "Please install 'flac' on ALL worker nodes!"
-   exit 1
+if which flac >&/dev/null; then
+  FLAC_CMD='printf "%s flac -c -d -s %s/%s.flac |\n", $0, dir, $0'
+elif sox -h | grep flac; 
+  FLAC_CMD='printf "%s sox %s/%s.flac -r 16000 -b 16 -t wavpcm - |\n", $0, dir, $0'
+else
+  echo "Please install 'flac' or enable FLAC support in SoX on ALL worker nodes!"
+  exit 1
 fi
 
 spk_file=$src/../SPEAKERS.TXT
@@ -54,7 +58,7 @@ for reader_dir in $(find -L $src -mindepth 1 -maxdepth 1 -type d | sort); do
     fi
 
     find -L $chapter_dir/ -iname "*.flac" | sort | xargs -I% basename % .flac | \
-      awk -v "dir=$chapter_dir" '{printf "%s flac -c -d -s %s/%s.flac |\n", $0, dir, $0}' >>$wav_scp|| exit 1
+      awk -v "dir=$chapter_dir" "'{$FLAC_CMD}'" >>$wav_scp|| exit 1
 
     chapter_trans=$chapter_dir/${reader}-${chapter}.trans.txt
     [ ! -f  $chapter_trans ] && echo "$0: expected file $chapter_trans to exist" && exit 1
