@@ -87,6 +87,8 @@ RemoteSystemsTempFiles
 /egs/*/*/plp
 /egs/*/*/exp
 /egs/*/*/data
+/egs/*/*/wav
+/egs/*/*/enhan
 
 # ignore all non s<#> and v<#>
 /egs/*/[^sv]*
