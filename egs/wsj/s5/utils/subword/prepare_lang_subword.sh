@@ -142,22 +142,14 @@ if ! utils/validate_dict_dir.pl $srcdir >&/dev/null; then
 fi
 
 # phones.txt file provided, we will do some sanity check here.
-<<<<<<< Updated upstream
 if [ ! -z $phone_symbol_table ]; then
-=======
-if [[ ! -z $phone_symbol_table ]]; then
->>>>>>> Stashed changes
   # Checks if we have position dependent phones
   n1=`cat $phone_symbol_table | grep -v -E "^#[0-9]+$" | cut -d' ' -f1 | sort -u | wc -l`
   n2=`cat $phone_symbol_table | grep -v -E "^#[0-9]+$" | cut -d' ' -f1 | sed 's/_[BIES]$//g' | sort -u | wc -l`
   $position_dependent_phones && [ $n1 -eq $n2 ] &&\
     echo "$0: Position dependent phones requested, but not in provided phone symbols" && exit 1;
   ! $position_dependent_phones && [ $n1 -ne $n2 ] &&\
-<<<<<<< Updated upstream
     echo "$0: Position dependent phones not requested, but appear in the provided phones.txt" && exit 1;
-=======
-      echo "$0: Position dependent phones not requested, but appear in the provided phones.txt" && exit 1;
->>>>>>> Stashed changes
 
   # Checks if the phone sets match.
   cat $srcdir/{,non}silence_phones.txt | awk -v f=$phone_symbol_table '
@@ -288,22 +280,14 @@ echo $ndisambig > $tmpdir/lex_ndisambig
 ( for n in `seq 0 $ndisambig`; do echo '#'$n; done ) >$dir/phones/disambig.txt
 
 # Create phone symbol table.
-<<<<<<< Updated upstream
 if [ ! -z $phone_symbol_table ]; then
-=======
-if [[ ! -z $phone_symbol_table ]]; then
->>>>>>> Stashed changes
   start_symbol=`grep \#0 $phone_symbol_table | awk '{print $2}'`
   echo "<eps>" | cat - $dir/phones/{silence,nonsilence}.txt | awk -v f=$phone_symbol_table '
   BEGIN { while ((getline < f) > 0) { phones[$1] = $2; }} { print $1" "phones[$1]; }' | sort -k2 -g |\
     cat - <(cat $dir/phones/disambig.txt | awk -v x=$start_symbol '{n=x+NR-1; print $1, n;}') > $dir/phones.txt
 else
   echo "<eps>" | cat - $dir/phones/{silence,nonsilence,disambig}.txt | \
-<<<<<<< Updated upstream
      awk '{n=NR-1; print $1, n;}' > $dir/phones.txt
-=======
-    awk '{n=NR-1; print $1, n;}' > $dir/phones.txt
->>>>>>> Stashed changes
 fi
 
 # Create a file that describes the word-boundary information for
