@@ -40,6 +40,12 @@ int main(int argc, char *argv[]) {
         "E.g.: select-voiced-frames [options] scp:feats.scp scp:vad.scp ark:-\n";
 
     ParseOptions po(usage);
+    int32 vad_subsampling_factor = 1;
+    BaseFloat speech_sym = 1.0;
+    po.Register("vad-subsampling-factor", &vad_subsampling_factor,
+        "subsapling factor used for vad (output will match feats length)");
+    po.Register("speech-sym", &speech_sym, "Value for voiced frames");
+
     po.Read(argc, argv);
 
     if (po.NumArgs() != 3) {
@@ -72,33 +78,37 @@ int main(int argc, char *argv[]) {
       }
       const Vector<BaseFloat> &voiced = vad_reader.Value(utt);
 
-      if (feat.NumRows() != voiced.Dim()) {
+      int32 dim = vad_subsampling_factor*voiced.Dim();
+      int32 max_vec_len = dim <= feat.NumRows() ? dim : feat.NumRows();
+      
+      int32 diff = feat.NumRows() - dim;
+      if (diff < 0) 
+        diff = -diff;
+      if (diff>vad_subsampling_factor) {
         KALDI_WARN << "Mismatch in number for frames " << feat.NumRows()
                    << " for features and VAD " << voiced.Dim()
                    << ", for utterance " << utt;
         num_err++;
         continue;
       }
-      if (voiced.Sum() == 0.0) {
+      int32 v_count = 0;
+      for (int32 i = 0; i < max_vec_len; i++)
+        if (voiced(i/vad_subsampling_factor) == speech_sym)
+          v_count++;
+      if (v_count == 0) {
         KALDI_WARN << "No features were judged as voiced for utterance "
                    << utt;
         num_err++;
         continue;
       }
-      int32 dim = 0;
-      for (int32 i = 0; i < voiced.Dim(); i++)
-        if (voiced(i) != 0.0)
-          dim++;
       Matrix<BaseFloat> voiced_feat(dim, feat.NumCols());
       int32 index = 0;
-      for (int32 i = 0; i < feat.NumRows(); i++) {
-        if (voiced(i) != 0.0) {
-          KALDI_ASSERT(voiced(i) == 1.0); // should be zero or one.
+      for (int32 i = 0; i < max_vec_len; i++) {
+        if (voiced(i/vad_subsampling_factor) == speech_sym) {
           voiced_feat.Row(index).CopyFromVec(feat.Row(i));
           index++;
         }
       }
-      KALDI_ASSERT(index == dim);
       feat_writer.Write(utt, voiced_feat);
       num_done++;
     }
