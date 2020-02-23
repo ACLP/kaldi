@@ -30,3 +30,4 @@ jol 020119CN_5min 66.35521 7 jolana1
 jol 020119MN_5min 22.58579 6 jolana2
 mar 020119CN_5min 19.20027 5 martina2
 
+This line is for git training purposes
