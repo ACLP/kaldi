@@ -1,0 +1,1 @@
+docker run -it -p 5001:5000 -v C:\Users\nirk\Documents\afeka\win-docker_share:/media/win-docekr_share  aclp/kaldi-bin-full /bin/bash
